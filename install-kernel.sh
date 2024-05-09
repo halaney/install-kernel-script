@@ -24,7 +24,7 @@ __EOF__
 
 
 while getopts ":s" option; do
-	case ${option} in
+	case "${option}" in
 		s)
 			SKIP_KERNEL_INSTALL=true
 			;;
@@ -36,7 +36,7 @@ while getopts ":s" option; do
 			;;
 	esac
 done
-shift $((OPTIND - 1))
+shift "$((OPTIND - 1))"
 
 TARGET_IP=$1
 if [[ "${TARGET_IP}" = "" ]] ; then
@@ -47,11 +47,11 @@ if [[ "${TARGET_IP}" = "" ]] ; then
 fi
 
 # Grab the kernelrelease string
-KERNELRELEASE=$(make CC=clang ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -s kernelrelease)
+KERNELRELEASE="$(make CC=clang ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -s kernelrelease)"
 
 # locally install the modules and dtbs
-LOCALMODDIR=$(mktemp -d)
-LOCALDTBSDIR=$(mktemp -d)
+LOCALMODDIR="$(mktemp -d)"
+LOCALDTBSDIR="$(mktemp -d)"
 make -s INSTALL_MOD_PATH="${LOCALMODDIR}" CC=clang ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- modules_install
 make -s INSTALL_DTBS_PATH="${LOCALDTBSDIR}" CC=clang ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- dtbs_install
 
