@@ -56,9 +56,9 @@ make -s INSTALL_MOD_PATH="${LOCALMODDIR}" CC=clang ARCH=arm64 CROSS_COMPILE=aarc
 make -s INSTALL_DTBS_PATH="${LOCALDTBSDIR}" CC=clang ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- dtbs_install
 
 # copy the modules, Image.gz, and dtbs
-rsync -az --partial "${LOCALMODDIR}"/lib/modules/"${KERNELRELEASE}"/ root@"${TARGET_IP}":/lib/modules/"${KERNELRELEASE}"
-rsync -az --partial arch/arm64/boot/Image.gz root@"${TARGET_IP}":/boot/vmlinuz-"${KERNELRELEASE}"
-rsync -az --partial "${LOCALDTBSDIR}"/ root@"${TARGET_IP}":/boot/dtb-"${KERNELRELEASE}"/
+rsync -az --partial --no-owner --no-group "${LOCALMODDIR}"/lib/modules/"${KERNELRELEASE}"/ root@"${TARGET_IP}":/lib/modules/"${KERNELRELEASE}"
+rsync -az --partial --no-owner --no-group arch/arm64/boot/Image.gz root@"${TARGET_IP}":/boot/vmlinuz-"${KERNELRELEASE}"
+rsync -az --partial --no-owner --no-group "${LOCALDTBSDIR}"/ root@"${TARGET_IP}":/boot/dtb-"${KERNELRELEASE}"/
 
 # kernel-install to get a BLS entry and initramfs
 if [[ "${SKIP_KERNEL_INSTALL}" != true ]] ; then
