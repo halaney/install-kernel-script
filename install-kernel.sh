@@ -68,16 +68,20 @@ fi
 # Grab the kernelrelease string
 KERNELRELEASE="$(make CC="${CC}" ARCH="${ARCH}" - -s kernelrelease)"
 
-# locally install the modules and dtbs
+# locally install the modules and (optionally via ARCH) dtbs
 LOCALMODDIR="$(mktemp -d)"
 LOCALDTBSDIR="$(mktemp -d)"
 make -s INSTALL_MOD_PATH="${LOCALMODDIR}" CC="${CC}" ARCH="${ARCH}" modules_install
-make -s INSTALL_DTBS_PATH="${LOCALDTBSDIR}" CC="${CC}" ARCH="${ARCH}" dtbs_install
+if [[ "${ARCH}" == "arm64" ]] ; then
+    make -s INSTALL_DTBS_PATH="${LOCALDTBSDIR}" CC="${CC}" ARCH="${ARCH}" dtbs_install
+fi
 
 # copy the modules, ${KERNEL_TARGET}, and dtbs
 rsync -az --partial --no-owner --no-group "${LOCALMODDIR}"/lib/modules/"${KERNELRELEASE}"/ root@"${TARGET_IP}":/lib/modules/"${KERNELRELEASE}"
 rsync -az --partial --no-owner --no-group "${KERNEL_TARGET}" root@"${TARGET_IP}":/boot/vmlinuz-"${KERNELRELEASE}"
-rsync -az --partial --no-owner --no-group "${LOCALDTBSDIR}"/ root@"${TARGET_IP}":/boot/dtb-"${KERNELRELEASE}"/
+if [[ "${ARCH}" == "arm64" ]] ; then
+    rsync -az --partial --no-owner --no-group "${LOCALDTBSDIR}"/ root@"${TARGET_IP}":/boot/dtb-"${KERNELRELEASE}"/
+fi
 
 # kernel-install to get a BLS entry and initramfs
 if [[ "${SKIP_KERNEL_INSTALL}" != true ]] ; then
