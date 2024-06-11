@@ -19,14 +19,18 @@ upload the artifacts. All these assumptions are room for improvement later..
 
     Options:
 	-s skip kernel-install (which can be slow on some systems)
+	-a ARCH to pass to the commands
 __EOF__
 }
 
 
-while getopts ":s" option; do
+while getopts ":s:a:" option; do
 	case "${option}" in
 		s)
 			SKIP_KERNEL_INSTALL=true
+			;;
+		a)
+			ARCH="${OPTARG}"
 			;;
 		*)
 			echo "error: invalid option ${OPTARG}"
@@ -38,6 +42,10 @@ while getopts ":s" option; do
 done
 shift "$((OPTIND - 1))"
 
+if [[ "${ARCH}" = "" ]] ; then
+	ARCH="$(uname -m)"
+fi
+
 TARGET_IP=$1
 if [[ "${TARGET_IP}" = "" ]] ; then
 	echo "Missing target_ip parameter"
@@ -47,13 +55,13 @@ if [[ "${TARGET_IP}" = "" ]] ; then
 fi
 
 # Grab the kernelrelease string
-KERNELRELEASE="$(make CC=clang ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -s kernelrelease)"
+KERNELRELEASE="$(make CC=clang ARCH="${ARCH}" CROSS_COMPILE=aarch64-linux-gnu- -s kernelrelease)"
 
 # locally install the modules and dtbs
 LOCALMODDIR="$(mktemp -d)"
 LOCALDTBSDIR="$(mktemp -d)"
-make -s INSTALL_MOD_PATH="${LOCALMODDIR}" CC=clang ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- modules_install
-make -s INSTALL_DTBS_PATH="${LOCALDTBSDIR}" CC=clang ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- dtbs_install
+make -s INSTALL_MOD_PATH="${LOCALMODDIR}" CC=clang ARCH="${ARCH}" CROSS_COMPILE=aarch64-linux-gnu- modules_install
+make -s INSTALL_DTBS_PATH="${LOCALDTBSDIR}" CC=clang ARCH="${ARCH}" CROSS_COMPILE=aarch64-linux-gnu- dtbs_install
 
 # copy the modules, Image.gz, and dtbs
 rsync -az --partial --no-owner --no-group "${LOCALMODDIR}"/lib/modules/"${KERNELRELEASE}"/ root@"${TARGET_IP}":/lib/modules/"${KERNELRELEASE}"
