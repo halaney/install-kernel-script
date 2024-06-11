@@ -20,11 +20,13 @@ upload the artifacts.
 	-s skip kernel-install (which can be slow on some systems)
 	-a ARCH= value to pass to the commands (arm64, etc)
 	-c CC= value to pass to the commands (clang, etc)
+	-v verbose mode
 __EOF__
 }
 
 
-while getopts ":s:a:c:" option; do
+SILENT="-s"
+while getopts ":s:a:c:v" option; do
 	case "${option}" in
 		s)
 			SKIP_KERNEL_INSTALL=true
@@ -34,6 +36,10 @@ while getopts ":s:a:c:" option; do
 			;;
 		c)
 			CC="${OPTARG}"
+			;;
+		v)
+			SILENT=""
+			VERBOSE="-v"
 			;;
 		*)
 			echo "error: invalid option ${OPTARG}"
@@ -66,21 +72,21 @@ if [[ "${TARGET_IP}" = "" ]] ; then
 fi
 
 # Grab the kernelrelease string
-KERNELRELEASE="$(make CC="${CC}" ARCH="${ARCH}" - -s kernelrelease)"
+KERNELRELEASE="$(make CC="${CC}" ARCH="${ARCH}" - "${SILENT}" kernelrelease)"
 
 # locally install the modules and (optionally via ARCH) dtbs
 LOCALMODDIR="$(mktemp -d)"
 LOCALDTBSDIR="$(mktemp -d)"
-make -s INSTALL_MOD_PATH="${LOCALMODDIR}" CC="${CC}" ARCH="${ARCH}" modules_install
+make "${SILENT}" INSTALL_MOD_PATH="${LOCALMODDIR}" CC="${CC}" ARCH="${ARCH}" modules_install
 if [[ "${ARCH}" == "arm64" ]] ; then
-    make -s INSTALL_DTBS_PATH="${LOCALDTBSDIR}" CC="${CC}" ARCH="${ARCH}" dtbs_install
+    make "${SILENT}" INSTALL_DTBS_PATH="${LOCALDTBSDIR}" CC="${CC}" ARCH="${ARCH}" dtbs_install
 fi
 
 # copy the modules, ${KERNEL_TARGET}, and dtbs
-rsync -az --partial --no-owner --no-group "${LOCALMODDIR}"/lib/modules/"${KERNELRELEASE}"/ root@"${TARGET_IP}":/lib/modules/"${KERNELRELEASE}"
-rsync -az --partial --no-owner --no-group "${KERNEL_TARGET}" root@"${TARGET_IP}":/boot/vmlinuz-"${KERNELRELEASE}"
+rsync "${VERBOSE}" -az --partial --no-owner --no-group "${LOCALMODDIR}"/lib/modules/"${KERNELRELEASE}"/ root@"${TARGET_IP}":/lib/modules/"${KERNELRELEASE}"
+rsync "${VERBOSE}" -az --partial --no-owner --no-group "${KERNEL_TARGET}" root@"${TARGET_IP}":/boot/vmlinuz-"${KERNELRELEASE}"
 if [[ "${ARCH}" == "arm64" ]] ; then
-    rsync -az --partial --no-owner --no-group "${LOCALDTBSDIR}"/ root@"${TARGET_IP}":/boot/dtb-"${KERNELRELEASE}"/
+    rsync "${VERBOSE}" -az --partial --no-owner --no-group "${LOCALDTBSDIR}"/ root@"${TARGET_IP}":/boot/dtb-"${KERNELRELEASE}"/
 fi
 
 # kernel-install to get a BLS entry and initramfs
