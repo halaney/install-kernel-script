@@ -59,13 +59,13 @@ if [[ "${TARGET_IP}" = "" ]] ; then
 fi
 
 # Grab the kernelrelease string
-KERNELRELEASE="$(make CC="${CC}" ARCH="${ARCH}" CROSS_COMPILE=aarch64-linux-gnu- -s kernelrelease)"
+KERNELRELEASE="$(make CC="${CC}" ARCH="${ARCH}" - -s kernelrelease)"
 
 # locally install the modules and dtbs
 LOCALMODDIR="$(mktemp -d)"
 LOCALDTBSDIR="$(mktemp -d)"
-make -s INSTALL_MOD_PATH="${LOCALMODDIR}" CC="${CC}" ARCH="${ARCH}" CROSS_COMPILE=aarch64-linux-gnu- modules_install
-make -s INSTALL_DTBS_PATH="${LOCALDTBSDIR}" CC="${CC}" ARCH="${ARCH}" CROSS_COMPILE=aarch64-linux-gnu- dtbs_install
+make -s INSTALL_MOD_PATH="${LOCALMODDIR}" CC="${CC}" ARCH="${ARCH}" modules_install
+make -s INSTALL_DTBS_PATH="${LOCALDTBSDIR}" CC="${CC}" ARCH="${ARCH}" dtbs_install
 
 # copy the modules, Image.gz, and dtbs
 rsync -az --partial --no-owner --no-group "${LOCALMODDIR}"/lib/modules/"${KERNELRELEASE}"/ root@"${TARGET_IP}":/lib/modules/"${KERNELRELEASE}"
