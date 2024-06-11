@@ -7,15 +7,14 @@ print_help()
     cat << __EOF__
 This script is useful for incrementally uploading locally built
 kernels to standards adhering systems. It will copy the modules,
-the Image.gz, and the dtbs to the target via rsync. It will also
-install them (i.e. generate an initramfs and BLS entry) with
-kernel-install.
+the <kernel_target_path> (arch/arm64/boot/Image.gz, arch/.../vmlinuz.efi, etc),
+and the dtbs to the target via rsync. It will also install them
+(i.e. generate an initramfs and BLS entry) with kernel-install.
 
-This script currently assumes you're crossing compiling from x86_64 to
-aarch64 with clang. It also assumes you've built already and just need to
-upload the artifacts. All these assumptions are room for improvement later..
+This script assumes you've built already and just need to
+upload the artifacts.
 
-    usage: $0 [options] target_ip
+    usage: $0 [options] <kernel_target_path> <target_ip>
 
     Options:
 	-s skip kernel-install (which can be slow on some systems)
@@ -50,7 +49,15 @@ if [[ "${ARCH}" = "" ]] ; then
 	ARCH="$(uname -m)"
 fi
 
-TARGET_IP=$1
+KERNEL_TARGET=$1
+if [[ "${KERNEL_TARGET}" = "" ]] ; then
+    echo "Missing kernel_target_path parameter path"
+	echo ""
+	print_help
+	exit 1
+fi
+
+TARGET_IP=$2
 if [[ "${TARGET_IP}" = "" ]] ; then
 	echo "Missing target_ip parameter"
 	echo ""
@@ -67,9 +74,9 @@ LOCALDTBSDIR="$(mktemp -d)"
 make -s INSTALL_MOD_PATH="${LOCALMODDIR}" CC="${CC}" ARCH="${ARCH}" modules_install
 make -s INSTALL_DTBS_PATH="${LOCALDTBSDIR}" CC="${CC}" ARCH="${ARCH}" dtbs_install
 
-# copy the modules, Image.gz, and dtbs
+# copy the modules, ${KERNEL_TARGET}, and dtbs
 rsync -az --partial --no-owner --no-group "${LOCALMODDIR}"/lib/modules/"${KERNELRELEASE}"/ root@"${TARGET_IP}":/lib/modules/"${KERNELRELEASE}"
-rsync -az --partial --no-owner --no-group arch/arm64/boot/Image.gz root@"${TARGET_IP}":/boot/vmlinuz-"${KERNELRELEASE}"
+rsync -az --partial --no-owner --no-group "${KERNEL_TARGET}" root@"${TARGET_IP}":/boot/vmlinuz-"${KERNELRELEASE}"
 rsync -az --partial --no-owner --no-group "${LOCALDTBSDIR}"/ root@"${TARGET_IP}":/boot/dtb-"${KERNELRELEASE}"/
 
 # kernel-install to get a BLS entry and initramfs
