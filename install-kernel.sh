@@ -26,6 +26,7 @@ __EOF__
 
 
 SILENT="-s"
+VERBOSE=""
 while getopts ":s:a:c:v" option; do
 	case "${option}" in
 		s)
@@ -40,6 +41,7 @@ while getopts ":s:a:c:v" option; do
 		v)
 			SILENT=""
 			VERBOSE="-v"
+			set -x
 			;;
 		*)
 			echo "error: invalid option ${OPTARG}"
