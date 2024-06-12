@@ -55,6 +55,7 @@ shift "$((OPTIND - 1))"
 
 if [[ "${ARCH}" = "" ]] ; then
 	ARCH="$(uname -m)"
+	# TODO: Does aarch64 need special treatment for kernel's arm64 deviation?
 fi
 
 KERNEL_TARGET=$1
