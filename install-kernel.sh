@@ -93,6 +93,8 @@ fi
 
 # kernel-install to get a BLS entry and initramfs
 if [[ "${SKIP_KERNEL_INSTALL}" != true ]] ; then
+	# This variable only make sense on the client side, this is intentional
+	# shellcheck disable=SC2029
 	ssh root@"${TARGET_IP}" "kernel-install add ${KERNELRELEASE} /boot/vmlinuz-${KERNELRELEASE}"
 fi
 
