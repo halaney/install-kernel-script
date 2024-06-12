@@ -87,10 +87,10 @@ fi
 # copy the modules, ${KERNEL_TARGET}, and dtbs. Don't let the ${KERNEL_TARGET} get copied
 # as a symlink, we're dropping in a file (i.e. bzImage is symlinked in a kernel build, don't
 # copy the link in that case)
-rsync "${VERBOSE}" -az --partial --no-owner --no-group "${LOCALMODDIR}"/lib/modules/"${KERNELRELEASE}"/ root@"${TARGET_IP}":/lib/modules/"${KERNELRELEASE}"
-rsync "${VERBOSE}" -az --partial --no-owner --no-group --copy-links "${KERNEL_TARGET}" root@"${TARGET_IP}":/boot/vmlinuz-"${KERNELRELEASE}"
+rsync ${VERBOSE:+"${VERBOSE}"} -az --partial --no-owner --no-group "${LOCALMODDIR}"/lib/modules/"${KERNELRELEASE}"/ root@"${TARGET_IP}":/lib/modules/"${KERNELRELEASE}"
+rsync ${VERBOSE:+"${VERBOSE}"} -az --partial --no-owner --no-group --copy-links "${KERNEL_TARGET}" root@"${TARGET_IP}":/boot/vmlinuz-"${KERNELRELEASE}"
 if [[ "${ARCH}" == "arm64" ]] ; then
-    rsync "${VERBOSE}" -az --partial --no-owner --no-group "${LOCALDTBSDIR}"/ root@"${TARGET_IP}":/boot/dtb-"${KERNELRELEASE}"/
+    rsync ${VERBOSE:+"${VERBOSE}"} -az --partial --no-owner --no-group "${LOCALDTBSDIR}"/ root@"${TARGET_IP}":/boot/dtb-"${KERNELRELEASE}"/
 fi
 
 # kernel-install to get a BLS entry and initramfs
