@@ -90,6 +90,7 @@ fi
 # copy the link in that case)
 rsync ${VERBOSE:+"${VERBOSE}"} -az --partial --no-owner --no-group "${LOCALMODDIR}"/lib/modules/"${KERNELRELEASE}"/ root@"${TARGET_IP}":/lib/modules/"${KERNELRELEASE}"
 rsync ${VERBOSE:+"${VERBOSE}"} -az --partial --no-owner --no-group --copy-links "${KERNEL_TARGET}" root@"${TARGET_IP}":/boot/vmlinuz-"${KERNELRELEASE}"
+rsync ${VERBOSE:+"${VERBOSE}"} -az --partial --no-owner --no-group --copy-links .config root@"${TARGET_IP}":/boot/config-"${KERNELRELEASE}"
 if [[ "${ARCH}" == "arm64" ]] ; then
     rsync ${VERBOSE:+"${VERBOSE}"} -az --partial --no-owner --no-group "${LOCALDTBSDIR}"/ root@"${TARGET_IP}":/boot/dtb-"${KERNELRELEASE}"/
 fi
