@@ -25,15 +25,19 @@ __EOF__
 }
 
 
+PORT="22"
 SILENT="-s"
 VERBOSE=""
-while getopts ":a:c:sv" option; do
+while getopts ":a:c:p:sv" option; do
 	case "${option}" in
 		a)
 			ARCH="${OPTARG}"
 			;;
 		c)
 			CC="${OPTARG}"
+			;;
+		p)
+			PORT="${OPTARG}"
 			;;
 		s)
 			SKIP_KERNEL_INSTALL=true
@@ -88,18 +92,18 @@ fi
 # copy the modules, ${KERNEL_TARGET}, and dtbs. Don't let the ${KERNEL_TARGET} get copied
 # as a symlink, we're dropping in a file (i.e. bzImage is symlinked in a kernel build, don't
 # copy the link in that case)
-rsync ${VERBOSE:+"${VERBOSE}"} -az --partial --no-owner --no-group "${LOCALMODDIR}"/lib/modules/"${KERNELRELEASE}"/ root@"${TARGET_IP}":/lib/modules/"${KERNELRELEASE}"
-rsync ${VERBOSE:+"${VERBOSE}"} -az --partial --no-owner --no-group --copy-links "${KERNEL_TARGET}" root@"${TARGET_IP}":/boot/vmlinuz-"${KERNELRELEASE}"
-rsync ${VERBOSE:+"${VERBOSE}"} -az --partial --no-owner --no-group --copy-links .config root@"${TARGET_IP}":/boot/config-"${KERNELRELEASE}"
+rsync ${VERBOSE:+"${VERBOSE}"} -e "ssh -p ${PORT}" -az --partial --no-owner --no-group "${LOCALMODDIR}"/lib/modules/"${KERNELRELEASE}"/ root@"${TARGET_IP}":/lib/modules/"${KERNELRELEASE}"
+rsync ${VERBOSE:+"${VERBOSE}"} -e "ssh -p ${PORT}" -az --partial --no-owner --no-group --copy-links "${KERNEL_TARGET}" root@"${TARGET_IP}":/boot/vmlinuz-"${KERNELRELEASE}"
+rsync ${VERBOSE:+"${VERBOSE}"} -e "ssh -p ${PORT}" -az --partial --no-owner --no-group --copy-links .config root@"${TARGET_IP}":/boot/config-"${KERNELRELEASE}"
 if [[ "${ARCH}" == "arm64" ]] ; then
-    rsync ${VERBOSE:+"${VERBOSE}"} -az --partial --no-owner --no-group "${LOCALDTBSDIR}"/ root@"${TARGET_IP}":/boot/dtb-"${KERNELRELEASE}"/
+    rsync ${VERBOSE:+"${VERBOSE}"} -e "ssh -p ${PORT}" -az --partial --no-owner --no-group "${LOCALDTBSDIR}"/ root@"${TARGET_IP}":/boot/dtb-"${KERNELRELEASE}"/
 fi
 
 # kernel-install to get a BLS entry and initramfs
 if [[ "${SKIP_KERNEL_INSTALL}" != true ]] ; then
 	# This variable only make sense on the client side, this is intentional
 	# shellcheck disable=SC2029
-	ssh root@"${TARGET_IP}" "kernel-install add ${KERNELRELEASE} /boot/vmlinuz-${KERNELRELEASE}"
+	ssh -p "${PORT}" root@"${TARGET_IP}" "kernel-install add ${KERNELRELEASE} /boot/vmlinuz-${KERNELRELEASE}"
 fi
 
 # TODO: cleanup regardless of failures above (set -e prevents this)
