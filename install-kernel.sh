@@ -27,7 +27,7 @@ __EOF__
 
 SILENT="-s"
 VERBOSE=""
-while getopts ":s:a:c:v" option; do
+while getopts ":a:c:sv" option; do
 	case "${option}" in
 		a)
 			ARCH="${OPTARG}"
