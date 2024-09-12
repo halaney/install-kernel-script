@@ -17,9 +17,9 @@ upload the artifacts.
     usage: $0 [options] <kernel_target_path> <target_ip>
 
     Options:
-	-s skip kernel-install (which can be slow on some systems)
 	-a ARCH= value to pass to the commands (arm64, etc)
 	-c CC= value to pass to the commands (clang, etc)
+	-s skip kernel-install (which can be slow on some systems)
 	-v verbose mode
 __EOF__
 }
@@ -29,14 +29,14 @@ SILENT="-s"
 VERBOSE=""
 while getopts ":s:a:c:v" option; do
 	case "${option}" in
-		s)
-			SKIP_KERNEL_INSTALL=true
-			;;
 		a)
 			ARCH="${OPTARG}"
 			;;
 		c)
 			CC="${OPTARG}"
+			;;
+		s)
+			SKIP_KERNEL_INSTALL=true
 			;;
 		v)
 			SILENT=""
