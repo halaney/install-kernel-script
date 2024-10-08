@@ -84,6 +84,10 @@ KERNELRELEASE="$(make CC="${CC}" ARCH="${ARCH}" - "${SILENT}" kernelrelease)"
 # locally install the modules and (optionally via ARCH) dtbs
 LOCALMODDIR="$(mktemp -d)"
 LOCALDTBSDIR="$(mktemp -d)"
+
+# clean up on exit, including from set -e errors
+trap 'rm -rf ${LOCALMODDIR} ${LOCALDTBSDIR}' EXIT
+
 make "${SILENT}" INSTALL_MOD_PATH="${LOCALMODDIR}" CC="${CC}" ARCH="${ARCH}" modules_install
 if [[ "${ARCH}" == "arm64" ]] ; then
     make "${SILENT}" INSTALL_DTBS_PATH="${LOCALDTBSDIR}" CC="${CC}" ARCH="${ARCH}" dtbs_install
@@ -105,8 +109,3 @@ if [[ "${SKIP_KERNEL_INSTALL}" != true ]] ; then
 	# shellcheck disable=SC2029
 	ssh -p "${PORT}" root@"${TARGET_IP}" "kernel-install add ${KERNELRELEASE} /boot/vmlinuz-${KERNELRELEASE}"
 fi
-
-# TODO: cleanup regardless of failures above (set -e prevents this)
-# Clean up
-rm -rf "${LOCALMODDIR}"
-rm -rf "${LOCALDTBSDIR}"
